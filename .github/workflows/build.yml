@@ -31,19 +31,19 @@ jobs:
       - name: Upload pak artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Updater_tg5040.zip
+          name: nextui-updater-tg5040.zip
           path: Updater_tg5040.zip
 
       - name: Upload pak artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Updater_tg5050.zip
+          name: nextui-updater-tg5050.zip
           path: Updater_tg5050.zip
 
       - name: Upload pak artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Updater_my355.zip
+          name: nextui-updater-my355.zip
           path: Updater_my355.zip
 
       - name: Upload pakz artifact
