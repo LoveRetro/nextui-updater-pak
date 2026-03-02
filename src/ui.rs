@@ -247,9 +247,7 @@ fn init_sdl(
 
     // Get display bounds for resolution-based scaling fallback
     let (screen_width, screen_height) = if let Some((mock_width, mock_height)) = mock_display_size {
-        println!(
-            "[DEBUG] Using mock display size: {mock_width}x{mock_height}"
-        );
+        println!("[DEBUG] Using mock display size: {mock_width}x{mock_height}");
         (mock_width as f32, mock_height as f32)
     } else {
         let display_bounds = video_subsystem.display_bounds(0)?;
@@ -259,9 +257,7 @@ fn init_sdl(
         )
     };
 
-    println!(
-        "Screen dimensions: {screen_width}x{screen_height}, reported DPI: {dpi:.0}"
-    );
+    println!("Screen dimensions: {screen_width}x{screen_height}, reported DPI: {dpi:.0}");
 
     // Calculate DPI scale factor
     // If DPI detection doesn't work (returns default 96), use resolution-based estimate
@@ -302,9 +298,7 @@ fn init_sdl(
         (width, height)
     };
 
-    println!(
-        "Creating window with size: {window_width}x{window_height}"
-    );
+    println!("Creating window with size: {window_width}x{window_height}");
 
     // Initialize game controller subsystem
     let game_controller_subsystem = sdl_context.game_controller()?;
@@ -328,9 +322,7 @@ fn init_sdl(
     // Create a window
     let base_title = format!("NextUI Updater {}", env!("CARGO_PKG_VERSION"));
     let window_title = if let Some((width, height)) = mock_display_size {
-        format!(
-            "{base_title} - {width}x{height}, {dpi_scale:.2}x scale"
-        )
+        format!("{base_title} - {width}x{height}, {dpi_scale:.2}x scale")
     } else {
         base_title
     };
