@@ -61,7 +61,7 @@ fn main() -> Result<()> {
     // Parse mock display size from arguments
     let mock_display_size = parse_mock_display_size();
     if let Some((width, height)) = mock_display_size {
-        println!("[DEBUG] Using mock display size: {}x{}", width, height);
+        println!("[DEBUG] Using mock display size: {width}x{height}");
     }
 
     run_ui(app_state, mock_display_size)?;

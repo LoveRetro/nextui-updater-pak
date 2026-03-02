@@ -221,7 +221,7 @@ fn setup_ui_style() -> egui::Style {
     style.visuals.widgets.hovered.corner_radius = CornerRadius::same(255);
 
     // Set default text size for all TextStyles
-    for (_text_style, font_id) in style.text_styles.iter_mut() {
+    for font_id in style.text_styles.values_mut() {
         font_id.size = scale(10.0);
     }
 
@@ -248,8 +248,7 @@ fn init_sdl(
     // Get display bounds for resolution-based scaling fallback
     let (screen_width, screen_height) = if let Some((mock_width, mock_height)) = mock_display_size {
         println!(
-            "[DEBUG] Using mock display size: {}x{}",
-            mock_width, mock_height
+            "[DEBUG] Using mock display size: {mock_width}x{mock_height}"
         );
         (mock_width as f32, mock_height as f32)
     } else {
@@ -261,8 +260,7 @@ fn init_sdl(
     };
 
     println!(
-        "Screen dimensions: {}x{}, reported DPI: {:.0}",
-        screen_width, screen_height, dpi
+        "Screen dimensions: {screen_width}x{screen_height}, reported DPI: {dpi:.0}"
     );
 
     // Calculate DPI scale factor
@@ -272,10 +270,9 @@ fn init_sdl(
         // Use 240px as the reference height unit: 480px = 2x, 768px ≈ 3x, 720px = 3x
         let height_scale = (screen_height / REFERENCE_HEIGHT).round();
         println!(
-            "DPI detection unreliable, using resolution-based scaling: {:.1}x ({}px / {}px)",
-            height_scale, screen_height, REFERENCE_HEIGHT
+            "DPI detection unreliable, using resolution-based scaling: {height_scale:.1}x ({screen_height}px / {REFERENCE_HEIGHT}px)"
         );
-        height_scale.max(1.0).min(4.0) // Clamp between 1x and 4x
+        height_scale.clamp(1.0, 4.0)
     } else {
         // DPI detection worked, use it
         println!(
@@ -287,7 +284,7 @@ fn init_sdl(
         dpi / REFERENCE_DPI
     };
 
-    println!("Final UI scale factor: {:.2}x", dpi_scale);
+    println!("Final UI scale factor: {dpi_scale:.2}x");
 
     unsafe {
         DPI_SCALE_FACTOR = dpi_scale;
@@ -306,8 +303,7 @@ fn init_sdl(
     };
 
     println!(
-        "Creating window with size: {}x{}",
-        window_width, window_height
+        "Creating window with size: {window_width}x{window_height}"
     );
 
     // Initialize game controller subsystem
@@ -333,8 +329,7 @@ fn init_sdl(
     let base_title = format!("NextUI Updater {}", env!("CARGO_PKG_VERSION"));
     let window_title = if let Some((width, height)) = mock_display_size {
         format!(
-            "{} - {}x{}, {:.2}x scale",
-            base_title, width, height, dpi_scale
+            "{base_title} - {width}x{height}, {dpi_scale:.2}x scale"
         )
     } else {
         base_title
