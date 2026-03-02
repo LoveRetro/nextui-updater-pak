@@ -49,5 +49,5 @@ jobs:
       - name: Upload pakz artifact
         uses: actions/upload-artifact@v4
         with:
-          name: nextui-updater-pak
+          name: nextui.updater.pakz
           path: dist/
