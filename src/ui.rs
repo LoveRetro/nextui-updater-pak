@@ -78,6 +78,9 @@ fn nextui_ui(ui: &mut egui::Ui, app_state: &'static AppStateManager) -> egui::Re
                     // selection view
                     ui.label(text(format!("Selected Version: {selected_tag}")));
                 } else {
+                    if let Some(current_name) = app_state.current_version_name() {
+                        ui.label(text(format!("Current version: {current_name}")));
+                    }
                     ui.label(text(format!("New version available: {selected_tag}")));
                 }
             }

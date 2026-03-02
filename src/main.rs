@@ -45,10 +45,15 @@ fn main() -> Result<()> {
     // Get current NextUI version
     let version_file =
         std::fs::read_to_string(SDCARD_ROOT.to_owned() + ".system/version.txt").unwrap_or_default();
+    let current_version_name = version_file
+        .lines()
+        .next()
+        .map(std::borrow::ToOwned::to_owned);
     let current_sha = version_file
         .lines()
         .nth(1)
         .map(std::borrow::ToOwned::to_owned);
+    app_state.set_current_version_name(current_version_name);
     app_state.set_current_version(current_sha);
 
     // Self-update
