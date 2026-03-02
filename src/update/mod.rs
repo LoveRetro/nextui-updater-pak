@@ -141,7 +141,7 @@ pub fn do_nextui_release_check(app_state: &AppStateManager) {
         Ok(releases) => releases,
         Err(err) => {
             // Failed connection
-            println!("Fetching releases failed: {:?}", err);
+            println!("Fetching releases failed: {err:?}");
             app_state.set_operation_failed(&format!("Fetching releases failed: {err}"));
             return;
         }
@@ -159,7 +159,7 @@ pub fn do_nextui_release_check(app_state: &AppStateManager) {
         Ok(tags) => tags,
         Err(err) => {
             // Failed connection
-            println!("Fetching tags failed: {:?}", err);
+            println!("Fetching tags failed: {err:?}");
             app_state.set_operation_failed(&format!("Fetching tags failed: {err}"));
             return;
         }
@@ -226,7 +226,7 @@ pub fn do_self_update(app_state: &AppStateManager) {
             app_state.finish_operation();
         }
         Err(err) => {
-            println!("Update failed: {:?}", err);
+            println!("Update failed: {err:?}");
             app_state.set_operation_failed(&format!("Self-update failed: {err}"));
         }
     }
