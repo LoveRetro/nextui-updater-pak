@@ -1,0 +1,53 @@
+# NextUI Updater — strings françaises
+
+# Boutons / actions
+btn.return=Retour
+btn.accept_warning=Accepter l'avertissement
+btn.quick_update=Mise à jour rapide
+btn.full_update=Mise à jour complète
+btn.update_anyway=Mettre à jour quand même
+btn.quit=Quitter
+btn.select_version=Choisir la version
+
+# Hints (en bas d'écran)
+hint.return_to_latest=Retour aux options Dernière version
+hint.confirm_warning=Confirmer l'avertissement et ouvrir les options
+hint.update_minui=Mettre à jour seulement MinUI.zip
+hint.update_full=Extraire toutes les archives (base + extras)
+hint.quit=Quitter NextUI Updater
+hint.ignore_current=Ignorer la version actuelle
+
+# Statut / vide
+status.no_release_info=Aucune information de version disponible
+
+# Opérations en arrière-plan (affichées pendant l'exécution)
+op.fetch_updater=Récupération de la dernière version de l'updater...
+op.download_updater=Téléchargement de l'updater...
+op.extract_updater=Extraction de NextUI Updater {tag}...
+op.self_update_done=Auto-mise à jour réussie ! Redémarrage de l'updater...
+op.fetch_release=Récupération de la dernière release NextUI...
+op.fetch_releases=Récupération des releases NextUI...
+op.fetch_tags=Récupération des tags NextUI...
+op.download_update=Téléchargement de la mise à jour...
+op.extract_archive=Extraction de {asset}...\nVeuillez patienter...
+op.update_complete=Mise à jour terminée, préparation du redémarrage...
+op.rebooting=Redémarrage du système...
+
+# Erreurs
+err.fetch_releases_failed=Échec de la récupération des releases : {err}
+err.fetch_releases_zero=La récupération des releases a retourné 0 résultat
+err.fetch_tags_failed=Échec de la récupération des tags : {err}
+err.fetch_tags_zero=La récupération des tags a retourné 0 résultat
+err.no_pakz_asset=Aucun fichier .pakz trouvé
+err.extract_failed=Échec de l'extraction du paquet de mise à jour
+err.self_update_failed=Échec de l'auto-mise à jour : {err}
+err.update_failed=Échec de la mise à jour : {err}
+err.no_release=Aucune release trouvée
+err.no_assets=Aucun fichier trouvé dans la release
+
+# Statut de version
+status.selected_already_installed=Version sélectionnée : {tag}\nCette version est déjà installée !
+status.latest_already_installed=Vous avez la dernière version disponible :\n{tag}
+status.selected_version=Version sélectionnée : {tag}
+status.new_version_available=Nouvelle version disponible : {tag}
+status.latest_version=Dernière version : NextUI {tag}
