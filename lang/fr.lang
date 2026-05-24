@@ -1,5 +1,12 @@
 # NextUI Updater — strings françaises
 
+# Titres de fenêtre / écran
+title.version_selector=Sélecteur de version
+title.version_selector_warning=Avertissement du sélecteur de version
+
+# Avertissements
+warn.downgrade=ATTENTION\nLes retours en arrière ne sont pas pleinement pris en charge par NextUI !\nCertains réglages peuvent être perdus ou instables sur les anciennes versions\nUne modification manuelle des réglages ou des fichiers peut être nécessaire
+
 # Boutons / actions
 btn.return=Retour
 btn.accept_warning=Accepter l'avertissement
@@ -29,7 +36,8 @@ op.fetch_release=Récupération de la dernière release NextUI...
 op.fetch_releases=Récupération des releases NextUI...
 op.fetch_tags=Récupération des tags NextUI...
 op.download_update=Téléchargement de la mise à jour...
-op.extract_archive=Extraction de {asset}...\nVeuillez patienter...
+op.download_asset=Téléchargement de {asset}...
+op.extract_archive=Extraction de {asset}...\nPatiente...
 op.update_complete=Mise à jour terminée, préparation du redémarrage...
 op.rebooting=Redémarrage du système...
 
@@ -44,10 +52,12 @@ err.self_update_failed=Échec de l'auto-mise à jour : {err}
 err.update_failed=Échec de la mise à jour : {err}
 err.no_release=Aucune release trouvée
 err.no_assets=Aucun fichier trouvé dans la release
+err.no_matching_tag=Aucun tag ne correspond à la dernière release : {tag}
+err.github_api_failed=Échec de la requête API GitHub : {status}
 
 # Statut de version
 status.selected_already_installed=Version sélectionnée : {tag}\nCette version est déjà installée !
-status.latest_already_installed=Vous avez la dernière version disponible :\n{tag}
+status.latest_already_installed=Tu as la dernière version disponible :\n{tag}
 status.selected_version=Version sélectionnée : {tag}
 status.new_version_available=Nouvelle version disponible : {tag}
 status.latest_version=Dernière version : NextUI {tag}

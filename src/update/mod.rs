@@ -202,10 +202,9 @@ pub fn do_nextui_release_check(app_state: &AppStateManager) {
         if check_latest_release {
             // Failed to find a match for the first release
             println!("Latest release has no matching tag: {:?}", release.tag_name);
-            app_state.set_operation_failed(&format!(
-                "Latest release has no matching tag: {:?}",
-                release.tag_name
-            ));
+            app_state.set_operation_failed(
+                &t!("err.no_matching_tag").replace("{tag}", &release.tag_name),
+            );
             return;
         }
     }
@@ -275,7 +274,9 @@ pub fn update_nextui(app_state: &AppStateManager, full: bool) -> Result<()> {
         .ok_or_else(|| t!("err.no_assets"))?;
 
     // Download the asset
-    app_state.start_determinate_operation(&format!("Downloading {}...", asset.name));
+    app_state.start_determinate_operation(
+        &t!("op.download_asset").replace("{asset}", &asset.name),
+    );
     println!("Downloading from {}", asset.url);
 
     let bytes = download(&asset.url, |pr| app_state.update_progress(pr))?;

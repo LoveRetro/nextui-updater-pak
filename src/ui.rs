@@ -51,12 +51,7 @@ fn nextui_ui(ui: &mut egui::Ui, app_state: &'static AppStateManager) -> egui::Re
 
     if app_state.release_selection_menu() & !app_state.release_selection_confirmed() {
         ui.add_space(scale(16.0));
-        ui.label(text(
-            "WARNING\n\
-            Downgrades are not fully supported by NextUI!\n\
-            Some settings may be lost or unstable in old versions\n\
-            Manual editing of settings or files may be required",
-        ));
+        ui.label(text(t!("warn.downgrade")));
     } else {
         // Show release information if available
         match (current_version, latest_tag, latest_release) {
@@ -472,13 +467,16 @@ pub fn run_ui(
                 if app_state.release_selection_menu() {
                     if app_state.release_selection_confirmed() {
                         ui.label(
-                            text(title_prefix + " Version Selector")
+                            text(format!("{title_prefix} {}", t!("title.version_selector")))
                                 .color(Color32::from_rgb(150, 150, 150)),
                         );
                     } else {
                         ui.label(
-                            text(title_prefix + " Version Selector Warning")
-                                .color(Color32::from_rgb(150, 150, 150)),
+                            text(format!(
+                                "{title_prefix} {}",
+                                t!("title.version_selector_warning")
+                            ))
+                            .color(Color32::from_rgb(150, 150, 150)),
                         );
                     }
                 } else {
