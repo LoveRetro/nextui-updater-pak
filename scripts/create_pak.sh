@@ -9,7 +9,7 @@ ZIP_FILE="nextui.updater.zip"
 
 rm -rf "${DIST_DIR}"
 
-for PLATFORM in tg5040 tg5050 my355; do
+for PLATFORM in tg5040 tg5050 my355 h700; do
     UPDATER_DIR="${DIST_DIR}/Tools/${PLATFORM}/${PAK_DIR_NAME}.pak"
     mkdir -p "${UPDATER_DIR}"
 
@@ -36,6 +36,6 @@ EOF
 done
 
 #(cd "${DIST_DIR}" && zip -r "../${ZIP_FILE}" .)
-for PLATFORM in tg5040 tg5050 my355; do
+for PLATFORM in tg5040 tg5050 my355 h700; do
     (cd "${DIST_DIR}/Tools/${PLATFORM}/${PAK_DIR_NAME}.pak" && zip -r "../../../../${PAK_DIR_NAME}_${PLATFORM}.zip" .)
 done

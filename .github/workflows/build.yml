@@ -46,6 +46,12 @@ jobs:
           name: nextui-updater-my355.zip
           path: Updater_my355.zip
 
+      - name: Upload pak artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextui-updater-h700.zip
+          path: Updater_h700.zip
+
       - name: Upload pakz artifact
         uses: actions/upload-artifact@v4
         with:
