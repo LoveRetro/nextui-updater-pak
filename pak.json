@@ -1,6 +1,6 @@
 {
   "name": "Updater",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "type": "TOOL",
   "description": "Update NextUI over-the-air!",
   "author": "LanderN",
@@ -12,6 +12,10 @@
   "platforms": [
     "tg5040", "tg5050", "my355", "h700"
   ],
+  "changelog": {
+    "0.8.0": "h700 support (8Anbernic RG xx).",
+    "0.7.0": "DPI awareness, tg5050/my355 support."
+  },
   "update_ignore": [],
   "launch": "launch.sh"
 }
