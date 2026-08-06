@@ -288,15 +288,15 @@ pub fn update_nextui(app_state: &AppStateManager, full: bool) -> Result<()> {
                     if let Some(captures) = emu_tag_re.captures(file) {
                         if let Some(emu) = captures.name("emu").map(|c| c.as_str()) {
                             // Check if the emu tag already exists in the roms folder
-                            if std::fs::read_dir(PathBuf::from(SDCARD_ROOT).join("Roms"))
-                                .is_ok_and(|d| {
+                            if std::fs::read_dir(PathBuf::from(SDCARD_ROOT).join("Roms")).is_ok_and(
+                                |d| {
                                     d.filter_map(std::result::Result::ok).any(|e| {
                                         e.file_name()
                                             .to_string_lossy()
                                             .contains(format!("({emu})").as_str())
                                     })
-                                })
-                            {
+                                },
+                            ) {
                                 println!("Roms folder for {emu} already exists, skipping");
                                 return false;
                             }
