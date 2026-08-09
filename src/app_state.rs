@@ -14,6 +14,7 @@ pub enum Progress {
 pub struct AppState {
     submenu: Submenu,
     current_version: Option<String>,
+    current_version_name: Option<String>,
     nextui_release: Option<Release>,
     nextui_tag: Option<Tag>,
     nextui_releases_and_tags: Option<Vec<ReleaseAndTag>>,
@@ -42,6 +43,7 @@ impl AppStateManager {
             state: Arc::new(Mutex::new(AppState {
                 submenu: Submenu::NextUI,
                 current_version: None,
+                current_version_name: None,
                 nextui_release: None,
                 nextui_tag: None,
                 nextui_releases_and_tags: None,
@@ -91,6 +93,10 @@ impl AppStateManager {
 
     pub fn current_version(&self) -> Option<String> {
         self.state.lock().current_version.clone()
+    }
+
+    pub fn current_version_name(&self) -> Option<String> {
+        self.state.lock().current_version_name.clone()
     }
 
     pub fn nextui_release(&self) -> Option<Release> {
@@ -144,6 +150,10 @@ impl AppStateManager {
 
     pub fn set_current_version(&self, version: Option<String>) {
         self.state.lock().current_version = version;
+    }
+
+    pub fn set_current_version_name(&self, version_name: Option<String>) {
+        self.state.lock().current_version_name = version_name;
     }
 
     pub fn set_nextui_release(&self, release: Option<Release>) {
