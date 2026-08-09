@@ -1,0 +1,63 @@
+# NextUI Updater — English strings (reference / fallback)
+
+# Window / screen titles
+title.version_selector=Version Selector
+title.version_selector_warning=Version Selector Warning
+
+# Warnings
+warn.downgrade=WARNING\nDowngrades are not fully supported by NextUI!\nSome settings may be lost or unstable in old versions\nManual editing of settings or files may be required
+
+# Buttons / actions
+btn.return=Return
+btn.accept_warning=Accept Warning
+btn.quick_update=Quick Update
+btn.full_update=Full Update
+btn.update_anyway=Update anyway
+btn.quit=Quit
+btn.select_version=Select Version
+
+# Hints (shown at the bottom)
+hint.return_to_latest=Return to Latest Version options
+hint.confirm_warning=Confirm warning and open update options
+hint.update_minui=Update MinUI.zip only
+hint.update_full=Extract full zip files (base + extras)
+hint.quit=Quit NextUI Updater
+hint.ignore_current=Ignore current version
+
+# Empty / status
+status.no_release_info=No release information available
+
+# Background operations (shown while running)
+op.fetch_updater=Fetching latest updater release...
+op.download_updater=Downloading updater...
+op.extract_updater=Extracting NextUI Updater {tag}...
+op.self_update_done=Self-update success! Restarting updater...
+op.fetch_release=Fetching latest NextUI release...
+op.fetch_releases=Fetching latest NextUI releases...
+op.fetch_tags=Fetching latest NextUI tags...
+op.download_update=Downloading update...
+op.download_asset=Downloading {asset}...
+op.extract_archive=Extracting {asset}...\nPlease wait...
+op.update_complete=Update complete, preparing to reboot...
+op.rebooting=Rebooting system...
+
+# Errors
+err.fetch_releases_failed=Fetching releases failed: {err}
+err.fetch_releases_zero=Fetching releases returned 0 releases
+err.fetch_tags_failed=Fetching tags failed: {err}
+err.fetch_tags_zero=Fetching tags returned 0 tags
+err.no_pakz_asset=No .pakz asset found
+err.extract_failed=Failed to extract update package
+err.self_update_failed=Self-update failed: {err}
+err.update_failed=Update failed: {err}
+err.no_release=No release found
+err.no_assets=No assets found
+err.no_matching_tag=Latest release has no matching tag: {tag}
+err.github_api_failed=GitHub API request failed: {status}
+
+# Version status labels
+status.selected_already_installed=Selected Version: {tag}\nThis version is currently already installed!
+status.latest_already_installed=You currently have the latest available version:\n{tag}
+status.selected_version=Selected Version: {tag}
+status.new_version_available=New version available: {tag}
+status.latest_version=Latest version: NextUI {tag}

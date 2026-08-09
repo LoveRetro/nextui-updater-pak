@@ -7,7 +7,7 @@ use reqwest::blocking::Client;
 use reqwest::IntoUrl;
 
 use crate::github::{Release, Tag};
-use crate::Result;
+use crate::{t, Result};
 
 const USER_AGENT: &str = concatcp!("NextUIUpdater/", env!("CARGO_PKG_VERSION"));
 
@@ -33,7 +33,9 @@ pub fn fetch_latest_release(repo: &str) -> Result<Release> {
         .send()?;
 
     if !response.status().is_success() {
-        return Err(format!("GitHub API request failed: {}", response.status()).into());
+        return Err(t!("err.github_api_failed")
+            .replace("{status}", &response.status().to_string())
+            .into());
     }
 
     Ok(response.json()?)
@@ -48,7 +50,9 @@ pub fn fetch_releases(repo: &str) -> Result<Vec<Release>> {
         .send()?;
 
     if !response.status().is_success() {
-        return Err(format!("GitHub API request failed: {}", response.status()).into());
+        return Err(t!("err.github_api_failed")
+            .replace("{status}", &response.status().to_string())
+            .into());
     }
 
     Ok(response.json()?)
@@ -63,7 +67,9 @@ pub fn fetch_tags(repo: &str) -> Result<Vec<Tag>> {
         .send()?;
 
     if !response.status().is_success() {
-        return Err(format!("GitHub API request failed: {}", response.status()).into());
+        return Err(t!("err.github_api_failed")
+            .replace("{status}", &response.status().to_string())
+            .into());
     }
 
     let tags: Vec<Tag> = response.json()?;

@@ -11,7 +11,7 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::{io::Read, sync::Arc, time::Instant};
 
-use crate::{Result, SDCARD_ROOT};
+use crate::{Result, SDCARD_ROOT, t};
 
 const DEFAULT_WIDTH: u32 = 1024;
 const DEFAULT_HEIGHT: u32 = 768;
@@ -51,12 +51,7 @@ fn nextui_ui(ui: &mut egui::Ui, app_state: &'static AppStateManager) -> egui::Re
 
     if app_state.release_selection_menu() & !app_state.release_selection_confirmed() {
         ui.add_space(scale(16.0));
-        ui.label(text(
-            "WARNING\n\
-            Downgrades are not fully supported by NextUI!\n\
-            Some settings may be lost or unstable in old versions\n\
-            Manual editing of settings or files may be required",
-        ));
+        ui.label(text(t!("warn.downgrade")));
     } else {
         // Show release information if available
         match (current_version, latest_tag, latest_release) {
@@ -65,33 +60,41 @@ fn nextui_ui(ui: &mut egui::Ui, app_state: &'static AppStateManager) -> egui::Re
                 if tag.commit.sha.starts_with(&current_version) && !latest_discarded {
                     if app_state.release_selection_menu() {
                         // selection view
-                        ui.label(
-                            text(format!("Selected Version: {selected_tag}\nThis version is currently already installed!")),
-                        );
+                        ui.label(text(
+                            t!("status.selected_already_installed").replace("{tag}", &selected_tag),
+                        ));
                     } else {
-                        ui.label(text(format!(
-                            "You currently have the latest available version:\n{selected_tag}"
-                        )));
+                        ui.label(text(
+                            t!("status.latest_already_installed").replace("{tag}", &selected_tag),
+                        ));
                     }
                     update_available = false;
                 } else if app_state.release_selection_menu() {
                     // selection view
-                    ui.label(text(format!("Selected Version: {selected_tag}")));
+                    ui.label(text(
+                        t!("status.selected_version").replace("{tag}", &selected_tag),
+                    ));
                 } else {
-                    ui.label(text(format!("New version available: {selected_tag}")));
+                    ui.label(text(
+                        t!("status.new_version_available").replace("{tag}", &selected_tag),
+                    ));
                 }
             }
             (_, _, Some(release)) => {
                 if app_state.release_selection_menu() {
                     // selection view
                     let selected_tag = hint_wrap_nextui_tag(app_state, &release.tag_name);
-                    ui.label(text(format!("Selected Version: {selected_tag}")));
+                    ui.label(text(
+                        t!("status.selected_version").replace("{tag}", &selected_tag),
+                    ));
                 } else {
-                    ui.label(text(format!("Latest version: NextUI {}", release.tag_name)));
+                    ui.label(text(
+                        t!("status.latest_version").replace("{tag}", &release.tag_name),
+                    ));
                 }
             }
             _ => {
-                ui.label(text("No release information available"));
+                ui.label(text(t!("status.no_release_info")));
             }
         }
     }
@@ -99,27 +102,27 @@ fn nextui_ui(ui: &mut egui::Ui, app_state: &'static AppStateManager) -> egui::Re
     ui.add_space(scale(8.0));
 
     if app_state.release_selection_menu() & !app_state.release_selection_confirmed() {
-        let back_button = ui.button(text("Return"));
+        let back_button = ui.button(text(t!("btn.return")));
         if back_button.clicked() {
             app_state.set_release_selection_menu(false);
         }
 
-        let confirm_button = ui.button(text("Accept Warning"));
+        let confirm_button = ui.button(text(t!("btn.accept_warning")));
         if confirm_button.clicked() {
             app_state.set_release_selection_confirmed(true);
         }
 
         if back_button.has_focus() {
-            app_state.set_hint(Some("Return to Latest Version options".to_string()));
+            app_state.set_hint(Some(t!("hint.return_to_latest")));
         } else if confirm_button.has_focus() {
-            app_state.set_hint(Some("Confirm warning and open update options".to_string()));
+            app_state.set_hint(Some(t!("hint.confirm_warning")));
         } else {
             app_state.set_hint(None);
         }
 
         back_button
     } else if update_available {
-        let quick_update_button = ui.add(Button::new(text("Quick Update")));
+        let quick_update_button = ui.add(Button::new(text(t!("btn.quick_update"))));
 
         // Initiate update if button clicked
         if quick_update_button.clicked() {
@@ -130,7 +133,7 @@ fn nextui_ui(ui: &mut egui::Ui, app_state: &'static AppStateManager) -> egui::Re
 
         ui.add_space(scale(4.0));
 
-        let full_update_button = ui.add(Button::new(text("Full Update")));
+        let full_update_button = ui.add(Button::new(text(t!("btn.full_update"))));
 
         if full_update_button.clicked() {
             // Clear any previous errors
@@ -140,21 +143,21 @@ fn nextui_ui(ui: &mut egui::Ui, app_state: &'static AppStateManager) -> egui::Re
 
         // HINTS
         if quick_update_button.has_focus() {
-            app_state.set_hint(Some("Update MinUI.zip only".to_string()));
+            app_state.set_hint(Some(t!("hint.update_minui")));
         } else if full_update_button.has_focus() {
-            app_state.set_hint(Some("Extract full zip files (base + extras)".to_string()));
+            app_state.set_hint(Some(t!("hint.update_full")));
         } else {
             app_state.set_hint(None);
         }
 
         quick_update_button
     } else {
-        let force_button = ui.button(text("Update anyway"));
+        let force_button = ui.button(text(t!("btn.update_anyway")));
         if force_button.clicked() {
             app_state.set_nextui_tag(None); // forget the tag
         }
 
-        let quit_button = ui.button(text("Quit"));
+        let quit_button = ui.button(text(t!("btn.quit")));
         if quit_button.clicked() {
             if app_state.release_selection_menu() {
                 app_state.set_release_selection_menu(false);
@@ -165,12 +168,12 @@ fn nextui_ui(ui: &mut egui::Ui, app_state: &'static AppStateManager) -> egui::Re
 
         if quit_button.has_focus() {
             if app_state.release_selection_menu() {
-                app_state.set_hint(Some("Return to Latest Version options".to_string()));
+                app_state.set_hint(Some(t!("hint.return_to_latest")));
             } else {
-                app_state.set_hint(Some("Quit NextUI Updater".to_string()));
+                app_state.set_hint(Some(t!("hint.quit")));
             }
         } else if force_button.has_focus() {
-            app_state.set_hint(Some("Ignore current version".to_string()));
+            app_state.set_hint(Some(t!("hint.ignore_current")));
         } else {
             app_state.set_hint(None);
         }
@@ -464,13 +467,16 @@ pub fn run_ui(
                 if app_state.release_selection_menu() {
                     if app_state.release_selection_confirmed() {
                         ui.label(
-                            text(title_prefix + " Version Selector")
+                            text(format!("{title_prefix} {}", t!("title.version_selector")))
                                 .color(Color32::from_rgb(150, 150, 150)),
                         );
                     } else {
                         ui.label(
-                            text(title_prefix + " Version Selector Warning")
-                                .color(Color32::from_rgb(150, 150, 150)),
+                            text(format!(
+                                "{title_prefix} {}",
+                                t!("title.version_selector_warning")
+                            ))
+                            .color(Color32::from_rgb(150, 150, 150)),
                         );
                     }
                 } else {
@@ -556,7 +562,7 @@ pub fn run_ui(
                             );
 
                             ui.label(
-                                RichText::new("Select Version")
+                                RichText::new(t!("btn.select_version"))
                                     .size(button_size)
                                     .color(Color32::from_rgb(100, 100, 100)),
                             );
@@ -574,18 +580,25 @@ pub fn run_ui(
             }
 
             // HACK: for some reason dynamic text isn't rendered without this
+            // (egui needs a chance to rasterise glyphs into its atlas before
+            // they appear in real labels). Include accented Latin characters
+            // so French / German / Spanish / Italian strings render correctly.
             ui.allocate_ui(
                 Vec2::ZERO,
                 |ui| {
                     ui.label(
                         RichText::new(
-                            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789~`!@#$%^&*()-=_+[]{};':\",.<>/?",
+                            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789~`!@#$%^&*()-=_+[]{};':\",.<>/?\
+                             ÀÂÄÇÉÈÊËÎÏÔÖÙÛÜŸÆŒàâäçéèêëîïôöùûüÿæœñ«»°…—–",
                         )
                         .color(Color32::TRANSPARENT)
                     );
                     ui.label(
                         RichText::new(
-                            "XSelect Version",
+                            // Same charset as the main hack — needed at the
+                            // small button-indicator size used in the corner.
+                            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 :\
+                             ÀÂÄÇÉÈÊËÎÏÔÖÙÛÜŸÆŒàâäçéèêëîïôöùûüÿæœñ",
                         )
                         .size(scale(6.0))
                         .color(Color32::TRANSPARENT)

@@ -1,7 +1,7 @@
 use crate::{
     app_state::{AppStateManager, Progress},
     github::ReleaseAndTag,
-    Result, SDCARD_ROOT,
+    t, Result, SDCARD_ROOT,
 };
 use bytes::Bytes;
 use fetching::{download, fetch_latest_release, fetch_releases, fetch_tags};
@@ -63,7 +63,7 @@ fn extract_zip<T: Fn(&str) -> bool>(
 
 pub fn self_update(app_state: &AppStateManager) -> Result<()> {
     // Fetch latest release information
-    app_state.start_operation("Fetching latest updater release...");
+    app_state.start_operation(&t!("op.fetch_updater"));
 
     println!("Fetching latest updater release...");
 
@@ -76,7 +76,7 @@ pub fn self_update(app_state: &AppStateManager) -> Result<()> {
 
     if available > installed {
         println!("New version available: {available} (current: {installed})");
-        app_state.set_current_operation(Some("Downloading updater...".to_string()));
+        app_state.set_current_operation(Some(t!("op.download_updater")));
     } else {
         println!("No updates available");
         return Ok(());
@@ -86,14 +86,15 @@ pub fn self_update(app_state: &AppStateManager) -> Result<()> {
         .assets
         .iter()
         .find(|a| a.name.to_lowercase().ends_with(".pakz"))
-        .ok_or("No .pakz asset found")?;
+        .ok_or_else(|| t!("err.no_pakz_asset"))?;
 
     let bytes = download(&asset.url, |pr| {
         app_state.update_progress(pr);
     })?;
 
-    app_state
-        .set_current_operation(format!("Extracting NextUI Updater {}...", release.tag_name).into());
+    app_state.set_current_operation(
+        Some(t!("op.extract_updater").replace("{tag}", &release.tag_name)),
+    );
     app_state.set_progress(Some(Progress::Indeterminate));
 
     // Move the current binary to a backup location
@@ -116,12 +117,10 @@ pub fn self_update(app_state: &AppStateManager) -> Result<()> {
         // Move the backup back
         std::fs::rename(current_binary.with_extension("bak"), current_binary)?;
 
-        return Err("Failed to extract update package".into());
+        return Err(t!("err.extract_failed").into());
     }
 
-    app_state.set_current_operation(Some(
-        "Self-update success! Restarting updater...".to_string(),
-    ));
+    app_state.set_current_operation(Some(t!("op.self_update_done")));
 
     // Give the user a moment to see the completion message
     thread::sleep(std::time::Duration::from_secs(1));
@@ -132,42 +131,46 @@ pub fn self_update(app_state: &AppStateManager) -> Result<()> {
 
 pub fn do_nextui_release_check(app_state: &AppStateManager) {
     // Fetch latest release information
-    app_state.start_operation("Fetching latest NextUI release...");
+    app_state.start_operation(&t!("op.fetch_release"));
     let repo = "LoveRetro/NextUI";
 
     // Fetch latest releases information
-    app_state.start_operation("Fetching latest NextUI releases...");
+    app_state.start_operation(&t!("op.fetch_releases"));
     let latest_releases = match fetch_releases(repo) {
         Ok(releases) => releases,
         Err(err) => {
             // Failed connection
             println!("Fetching releases failed: {err:?}");
-            app_state.set_operation_failed(&format!("Fetching releases failed: {err}"));
+            app_state.set_operation_failed(
+                &t!("err.fetch_releases_failed").replace("{err}", &err.to_string()),
+            );
             return;
         }
     };
     if latest_releases.is_empty() {
         // Connected, but no results
         println!("Fetching releases returned 0 releases");
-        app_state.set_operation_failed("Fetching releases returned 0 releases");
+        app_state.set_operation_failed(&t!("err.fetch_releases_zero"));
         return;
     }
 
     // Fetch latest tag information
-    app_state.start_operation("Fetching latest NextUI tags...");
+    app_state.start_operation(&t!("op.fetch_tags"));
     let mut latest_tags = match fetch_tags(repo) {
         Ok(tags) => tags,
         Err(err) => {
             // Failed connection
             println!("Fetching tags failed: {err:?}");
-            app_state.set_operation_failed(&format!("Fetching tags failed: {err}"));
+            app_state.set_operation_failed(
+                &t!("err.fetch_tags_failed").replace("{err}", &err.to_string()),
+            );
             return;
         }
     };
     if latest_tags.is_empty() {
         // Connected, but no results
         println!("Fetching tags returned 0 tags");
-        app_state.set_operation_failed("Fetching tags returned 0 tags");
+        app_state.set_operation_failed(&t!("err.fetch_tags_zero"));
         return;
     }
 
@@ -199,10 +202,9 @@ pub fn do_nextui_release_check(app_state: &AppStateManager) {
         if check_latest_release {
             // Failed to find a match for the first release
             println!("Latest release has no matching tag: {:?}", release.tag_name);
-            app_state.set_operation_failed(&format!(
-                "Latest release has no matching tag: {:?}",
-                release.tag_name
-            ));
+            app_state.set_operation_failed(
+                &t!("err.no_matching_tag").replace("{tag}", &release.tag_name),
+            );
             return;
         }
     }
@@ -227,7 +229,9 @@ pub fn do_self_update(app_state: &AppStateManager) {
         }
         Err(err) => {
             println!("Update failed: {err:?}");
-            app_state.set_operation_failed(&format!("Self-update failed: {err}"));
+            app_state.set_operation_failed(
+                &t!("err.self_update_failed").replace("{err}", &err.to_string()),
+            );
         }
     }
 }
@@ -237,7 +241,9 @@ pub fn do_update(app_state: &'static AppStateManager, full: bool) {
         if let Err(err) = update_nextui(app_state, full) {
             println!("Update failed: {:?}", err.source());
 
-            app_state.set_operation_failed(&format!("Update failed: {err}"));
+            app_state.set_operation_failed(
+                &t!("err.update_failed").replace("{err}", &err.to_string()),
+            );
 
             // Try to fetch latest release information again
             do_nextui_release_check(app_state);
@@ -247,12 +253,12 @@ pub fn do_update(app_state: &'static AppStateManager, full: bool) {
 
 pub fn update_nextui(app_state: &AppStateManager, full: bool) -> Result<()> {
     let mut release = {
-        app_state.start_operation("Downloading update...");
+        app_state.start_operation(&t!("op.download_update"));
 
         app_state
             .nextui_release()
             .clone()
-            .ok_or("No release found")?
+            .ok_or_else(|| t!("err.no_release"))?
     };
     if app_state.release_selection_menu() {
         let index = app_state.nextui_releases_and_tags_index().unwrap_or(0);
@@ -265,15 +271,19 @@ pub fn update_nextui(app_state: &AppStateManager, full: bool) -> Result<()> {
         .iter()
         .find(|a| a.name.contains(if full { "all" } else { "base" }))
         .or(assets.first())
-        .ok_or("No assets found")?;
+        .ok_or_else(|| t!("err.no_assets"))?;
 
     // Download the asset
-    app_state.start_determinate_operation(&format!("Downloading {}...", asset.name));
+    app_state.start_determinate_operation(
+        &t!("op.download_asset").replace("{asset}", &asset.name),
+    );
     println!("Downloading from {}", asset.url);
 
     let bytes = download(&asset.url, |pr| app_state.update_progress(pr))?;
 
-    app_state.set_current_operation(format!("Extracting {}...\nPlease wait...", asset.name).into());
+    app_state.set_current_operation(
+        Some(t!("op.extract_archive").replace("{asset}", &asset.name)),
+    );
     app_state.set_progress(Some(Progress::Indeterminate));
 
     // Extract the update package
@@ -324,12 +334,12 @@ pub fn update_nextui(app_state: &AppStateManager, full: bool) -> Result<()> {
     println!("Extraction complete!");
     app_state.set_progress(Some(Progress::Indeterminate));
 
-    app_state.set_current_operation(Some("Update complete, preparing to reboot...".to_string()));
+    app_state.set_current_operation(Some(t!("op.update_complete")));
 
     // Give the user a moment to see the completion message
     thread::sleep(std::time::Duration::from_secs(2));
 
-    app_state.set_current_operation(Some("Rebooting system...".to_string()));
+    app_state.set_current_operation(Some(t!("op.rebooting")));
 
     // Reboot the system
     match std::process::Command::new("reboot").output() {
