@@ -198,13 +198,18 @@ fn controller_to_key(button: sdl2::controller::Button) -> Option<sdl2::keyboard:
 // using the raw joystick button/hat indices for that specific hardware. GUID and name are
 // filled in at runtime since SDL computes the GUID per-device.
 //
-// To support a new device: run `evtest` against its input device to read off the BTN_* codes
-// in ascending order (that's the index SDL assigns), then add an entry here.
+// Don't derive indices from the device's evdev BTN_* codes (via `evtest` or similar) - SDL's
+// evdev backend doesn't necessarily assign raw button indices in ascending BTN_* code order
+// (confirmed on the RG SP below: e.g. BTN_WEST=0x134 is a lower code than BTN_TL=0x136, but
+// SDL gave it a *higher* index). Instead, temporarily log the raw `button_idx` from
+// Event::JoyButtonDown while pressing each labeled button on the device, and use those
+// observed indices directly.
 const KNOWN_NONSTANDARD_CONTROLLERS: &[(&str, &str)] = &[(
-    // Anbernic RG SP (h700): BTN_SOUTH=0(A) BTN_EAST=1(B) BTN_C=2 BTN_NORTH=3(X) BTN_WEST=4(Y)
-    // BTN_Z=5 BTN_TL=6 BTN_TR=7 BTN_TL2=8 BTN_SELECT=9(back) BTN_START=10(start)
+    // Anbernic RG SP (h700), confirmed via live button_idx logging (physical labels: A=3 B=4
+    // X=6 Y=5 L1=7 R1=8 L2=12 Select=9 Start=10). SDL's a/b and x/y are swapped relative to
+    // the physical labels here to match the semantics other supported devices already use.
     "ANBERNIC-keys",
-    "a:b0,b:b1,x:b3,y:b4,back:b9,start:b10,leftshoulder:b6,rightshoulder:b7,lefttrigger:b8,\
+    "a:b4,b:b3,x:b5,y:b6,back:b9,start:b10,leftshoulder:b7,rightshoulder:b8,lefttrigger:b12,\
      dpup:h0.1,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,",
 )];
 
