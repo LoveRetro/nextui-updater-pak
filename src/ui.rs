@@ -191,6 +191,55 @@ fn controller_to_key(button: sdl2::controller::Button) -> Option<sdl2::keyboard:
     }
 }
 
+// Devices whose built-in gamepad isn't in SDL's upstream GameControllerDB (internal
+// GPIO/evdev devices on some handhelds, rather than a recognized USB pad), keyed by the
+// joystick name SDL reports for them. The value is the button/hat portion of an SDL game
+// controller mapping string (see https://wiki.libsdl.org/SDL2/SDL_GameControllerAddMapping),
+// using the raw joystick button/hat indices for that specific hardware. GUID and name are
+// filled in at runtime since SDL computes the GUID per-device.
+//
+// To support a new device: run `evtest` against its input device to read off the BTN_* codes
+// in ascending order (that's the index SDL assigns), then add an entry here.
+const KNOWN_NONSTANDARD_CONTROLLERS: &[(&str, &str)] = &[(
+    // Anbernic RG SP (h700): BTN_SOUTH=0(A) BTN_EAST=1(B) BTN_C=2 BTN_NORTH=3(X) BTN_WEST=4(Y)
+    // BTN_Z=5 BTN_TL=6 BTN_TR=7 BTN_TL2=8 BTN_SELECT=9(back) BTN_START=10(start)
+    "ANBERNIC-keys",
+    "a:b0,b:b1,x:b3,y:b4,back:b9,start:b10,leftshoulder:b6,rightshoulder:b7,lefttrigger:b8,\
+     dpup:h0.1,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,",
+)];
+
+// Register mappings for any connected joystick that SDL doesn't already recognize as a game
+// controller, so it can be opened through the (semantic, device-agnostic) GameController API
+// below rather than us guessing at raw button indices per platform.
+fn register_custom_controller_mappings(
+    game_controller_subsystem: &sdl2::GameControllerSubsystem,
+    joystick_subsystem: &sdl2::JoystickSubsystem,
+    available: u32,
+) {
+    for id in 0..available {
+        if game_controller_subsystem.is_game_controller(id) {
+            continue;
+        }
+
+        let Ok(joystick) = joystick_subsystem.open(id) else {
+            continue;
+        };
+        let name = joystick.name();
+
+        let Some((_, fields)) = KNOWN_NONSTANDARD_CONTROLLERS
+            .iter()
+            .find(|(known_name, _)| *known_name == name)
+        else {
+            continue;
+        };
+
+        let mapping = format!("{},{name},{fields}platform:Linux,", joystick.guid());
+        if let Err(e) = game_controller_subsystem.add_mapping(&mapping) {
+            eprintln!("Failed to add custom mapping for {name}: {e:?}");
+        }
+    }
+}
+
 fn setup_ui_style() -> egui::Style {
     let mut style = egui::Style::default();
 
@@ -298,7 +347,10 @@ fn init_sdl(
 
     // Initialize game controller subsystem
     let game_controller_subsystem = sdl_context.game_controller()?;
+    let joystick_subsystem = sdl_context.joystick()?;
     let available = game_controller_subsystem.num_joysticks()?;
+
+    register_custom_controller_mappings(&game_controller_subsystem, &joystick_subsystem, available);
 
     // Attempt to open the first available game controller
     let controller = (0..available).find_map(|id| {
