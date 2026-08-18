@@ -13,8 +13,6 @@ use std::{io::Read, sync::Arc, time::Instant};
 
 use crate::{Result, SDCARD_ROOT};
 
-const DEFAULT_WIDTH: u32 = 1024;
-const DEFAULT_HEIGHT: u32 = 768;
 const REFERENCE_HEIGHT: f32 = 240.0; // Reference height unit for scaling (240px = 1x scale)
 const DEFAULT_DPI_SCALE: f32 = 4.0 / 3.0; // Adjusted for new 240px reference (was 4.0 at 768px = 3x)
 const REFERENCE_DPI: f32 = 96.0; // Standard screen DPI reference
@@ -193,6 +191,60 @@ fn controller_to_key(button: sdl2::controller::Button) -> Option<sdl2::keyboard:
     }
 }
 
+// Devices whose built-in gamepad isn't in SDL's upstream GameControllerDB (internal
+// GPIO/evdev devices on some handhelds, rather than a recognized USB pad), keyed by the
+// joystick name SDL reports for them. The value is the button/hat portion of an SDL game
+// controller mapping string (see https://wiki.libsdl.org/SDL2/SDL_GameControllerAddMapping),
+// using the raw joystick button/hat indices for that specific hardware. GUID and name are
+// filled in at runtime since SDL computes the GUID per-device.
+//
+// Don't derive indices from the device's evdev BTN_* codes (via `evtest` or similar) - SDL's
+// evdev backend doesn't necessarily assign raw button indices in ascending BTN_* code order
+// (confirmed on the RG SP below: e.g. BTN_WEST=0x134 is a lower code than BTN_TL=0x136, but
+// SDL gave it a *higher* index). Instead, temporarily log the raw `button_idx` from
+// Event::JoyButtonDown while pressing each labeled button on the device, and use those
+// observed indices directly.
+const KNOWN_NONSTANDARD_CONTROLLERS: &[(&str, &str)] = &[(
+    // Anbernic RG SP (h700), confirmed via live button_idx logging (physical labels: A=3 B=4
+    // X=6 Y=5 L1=7 R1=8 L2=12 Select=9 Start=10). SDL's a/b and x/y are swapped relative to
+    // the physical labels here to match the semantics other supported devices already use.
+    "ANBERNIC-keys",
+    "a:b4,b:b3,x:b5,y:b6,back:b9,start:b10,leftshoulder:b7,rightshoulder:b8,lefttrigger:b12,\
+     dpup:h0.1,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,",
+)];
+
+// Register mappings for any connected joystick that SDL doesn't already recognize as a game
+// controller, so it can be opened through the (semantic, device-agnostic) GameController API
+// below rather than us guessing at raw button indices per platform.
+fn register_custom_controller_mappings(
+    game_controller_subsystem: &sdl2::GameControllerSubsystem,
+    joystick_subsystem: &sdl2::JoystickSubsystem,
+    available: u32,
+) {
+    for id in 0..available {
+        if game_controller_subsystem.is_game_controller(id) {
+            continue;
+        }
+
+        let Ok(joystick) = joystick_subsystem.open(id) else {
+            continue;
+        };
+        let name = joystick.name();
+
+        let Some((_, fields)) = KNOWN_NONSTANDARD_CONTROLLERS
+            .iter()
+            .find(|(known_name, _)| *known_name == name)
+        else {
+            continue;
+        };
+
+        let mapping = format!("{},{name},{fields}platform:Linux,", joystick.guid());
+        if let Err(e) = game_controller_subsystem.add_mapping(&mapping) {
+            eprintln!("Failed to add custom mapping for {name}: {e:?}");
+        }
+    }
+}
+
 fn setup_ui_style() -> egui::Style {
     let mut style = egui::Style::default();
 
@@ -286,23 +338,24 @@ fn init_sdl(
         DPI_SCALE_FACTOR = dpi_scale;
     }
 
-    // When mock display size is provided, use it directly
-    // Otherwise, scale the default dimensions proportionally
+    // The window must match the physical screen resolution exactly - the KMSDRM/fbdev
+    // backend on device doesn't scale a larger window down to fit, it just shows a
+    // cropped corner of it. UI element sizing is handled separately via DpiScaling.
     #[allow(clippy::cast_sign_loss)]
     let (window_width, window_height) = if let Some((mock_width, mock_height)) = mock_display_size {
-        // Mock display size is already in the desired resolution
         (mock_width, mock_height)
     } else {
-        let width = ((DEFAULT_WIDTH as f32 * unsafe { DPI_SCALE_FACTOR }).max(1.0)) as u32;
-        let height = ((DEFAULT_HEIGHT as f32 * unsafe { DPI_SCALE_FACTOR }).max(1.0)) as u32;
-        (width, height)
+        (screen_width as u32, screen_height as u32)
     };
 
     println!("Creating window with size: {window_width}x{window_height}");
 
     // Initialize game controller subsystem
     let game_controller_subsystem = sdl_context.game_controller()?;
+    let joystick_subsystem = sdl_context.joystick()?;
     let available = game_controller_subsystem.num_joysticks()?;
+
+    register_custom_controller_mappings(&game_controller_subsystem, &joystick_subsystem, available);
 
     // Attempt to open the first available game controller
     let controller = (0..available).find_map(|id| {
