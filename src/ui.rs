@@ -48,11 +48,11 @@ fn nextui_ui(ui: &mut egui::Ui, app_state: &'static AppStateManager) -> egui::Re
     }
 
     if app_state.release_selection_menu() & !app_state.release_selection_confirmed() {
-        ui.add_space(scale(16.0));
+        ui.add_space(scale(4.0));
         ui.label(text(
             "WARNING\n\
             Downgrades are not fully supported by NextUI!\n\
-            Some settings may be lost or unstable in old versions\n\
+            Settings may be lost or unstable in old versions\n\
             Manual editing of settings or files may be required",
         ));
     } else {
@@ -565,6 +565,9 @@ pub fn run_ui(
                     .anchor(egui::Align2::CENTER_BOTTOM, Vec2::new(0.0, scale(-6.0)))
                     .interactable(false)
                     .show(ui.ctx(), |ui| {
+                        // Anchored areas only get the space right of their initial position
+                        // (half the screen when centered), so wrap against the full width instead.
+                        ui.set_max_width(ui.ctx().screen_rect().width());
                         ui.label(text(hint));
                     });
             }
